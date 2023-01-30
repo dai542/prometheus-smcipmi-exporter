@@ -1,0 +1,7 @@
+login:
+  user:     whoever
+  password: secret
+
+targets:
+  - target.1
+  - target.2

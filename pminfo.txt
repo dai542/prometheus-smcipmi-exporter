@@ -1,0 +1,56 @@
+ [SlaveAddress = 78h] [Module 1]
+ Item                           |                          Value
+ ----                           |                          -----
+ Status                         |                             OK
+ Input Voltage                  |                       229.75 V
+ Input Current                  |                         1.52 A
+ Main Output Voltage            |                        12.25 V
+ Main Output Current            |                        26.03 A
+ Temperature 1                  |                        35C/95F
+ Temperature 2                  |                       45C/113F
+ Fan 1                          |                       1392 RPM
+ Fan 2                          |                       1072 RPM
+ Main Output Power              |                          319 W
+ Input Power                    |                          337 W
+ PMBus Revision                 |                           0x12
+ PWS Serial Number              |                P1K28CH09ST0093
+ PWS Module Number              |                   PWS-1K28P-SQ
+ PWS Revision                   |                            1.4
+
+ [SlaveAddress = 7Ah] [Module 2]
+ Item                           |                          Value
+ ----                           |                          -----
+ Status                         |                             OK
+ Input Voltage                  |                       235.25 V
+ Input Current                  |                         0.94 A
+ Main Output Voltage            |                        12.21 V
+ Main Output Current            |                        13.67 A
+ Temperature 1                  |                        34C/93F
+ Temperature 2                  |                       42C/108F
+ Fan 1                          |                       1440 RPM
+ Fan 2                          |                       1088 RPM
+ Main Output Power              |                          167 W
+ Input Power                    |                          203 W
+ PMBus Revision                 |                           0x12
+ PWS Serial Number              |                P1K28CH09ST0094
+ PWS Module Number              |                   PWS-1K28P-SQ
+ PWS Revision                   |                            1.4
+
+[SlaveAddress = 7Fh] [Module 3]
+Item                           |                          Value
+----                           |                          -----
+Status                         |            [UNIT IS OFF] (40h)
+Input Voltage                  |                        242.5 V
+Input Current                  |                         0.06 A
+Main Output Voltage            |                          0.0 V
+Main Output Current            |                          0.0 A
+Temperature 1                  |                        30C/86F
+Temperature 2                  |                        36C/97F
+Fan 1                          |                        496 RPM
+Fan 2                          |                        496 RPM
+Main Output Power              |                            0 W
+Input Power                    |                            5 W
+PMBus Revision                 |                           0x12
+PWS Serial Number              |                P1K28CG08PB3544
+PWS Module Number              |                   PWS-1K28P-SQ
+PWS Revision                   |                            1.3
