@@ -43,6 +43,7 @@ var (
 	)
 )
 
+// TODO collector module stuff...
 type metricTemplate struct {
 	desc         *prometheus.Desc
 	valueType    prometheus.ValueType
@@ -61,14 +62,17 @@ var (
 
 type pminfoCollector struct {
 	target string
-	login  *Login
+	login  Login
 }
 
-func newPminfoCollector(target string, login *Login) *pminfoCollector {
-	if login == nil {
-		log.Fatal("Login object has not been initialized")
-	}
+func init() {
+	validateRegex()
+	metricTemplates["Status"] = pminfoStatusMetricTemplate
+}
 
+// Implements prometheus.Collector interface
+// Provides new{ModuleName}Collector(target string, login Login) prometheus.Collector signature
+func newPminfoCollector(target string, login Login) prometheus.Collector {
 	return &pminfoCollector{target, login}
 }
 
@@ -91,6 +95,7 @@ func (c *pminfoCollector) Collect(ch chan<- prometheus.Metric) {
 func (c *pminfoCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
+// TODO Must be struct specific...
 func convertPowerSupplyStatusValue(value string) float64 {
 	if strings.Contains(value, "OK") {
 		return 0
@@ -101,6 +106,7 @@ func convertPowerSupplyStatusValue(value string) float64 {
 	}
 }
 
+// TODO Must be struct specific...
 func validateRegex() {
 	if pminfoModuleNumberIndex == -1 {
 		panic("Index number not found in pminfoModuleRegex")
@@ -114,12 +120,6 @@ func validateRegex() {
 	if pminfoItemValueIndex == -1 {
 		panic("Index value not found in pminfoItemRegex")
 	}
-}
-
-func init() {
-	validateRegex()
-
-	metricTemplates["Status"] = pminfoStatusMetricTemplate
 }
 
 func (c *pminfoCollector) parsePminfoModules(data string) []prometheus.Metric {

@@ -17,38 +17,43 @@ package main
 
 import (
 	"log"
-
-	"github.com/gookit/config/v2"
-	"github.com/gookit/config/v2/yamlv3"
+	"strconv"
 )
 
-type ConfigFileReader struct{}
+type ConfigFileReader struct {
+	login         Login
+	targets       []string
+	collectPminfo bool
+	GenericConfigFileReader
+}
 
-func (*ConfigFileReader) LoadFile(filepath string) {
-	config.AddDriver(yamlv3.Driver)
+func newConfigFileReader(filepath string) *ConfigFileReader {
+	c := new(ConfigFileReader)
 
-	err := config.LoadFiles(filepath)
+	c.MustLoadFile(filepath)
+
+	c.login = *newLogin(c.MustHaveString("login.user"), c.MustHaveString("login.password"))
+	c.targets = c.MustHaveStringList("targets")
+
+	collectorMap := c.MustHaveMap("collectors")
+	c.collectPminfo = c.mustHaveCollectorOption(collectorMap, "pminfo")
+
+	return c
+}
+
+func (ConfigFileReader) mustHaveCollectorOption(m map[string]string, key string) bool {
+
+	value, ok := m[key]
+	if !ok {
+		log.Panicf("Collector option %s not found", key)
+	}
+	if value == "" {
+		log.Panicf("Collector option %s has no value", key)
+	}
+	collect, err := strconv.ParseBool(value)
 	if err != nil {
-		panic(err)
-	}
-}
-
-func (*ConfigFileReader) MustHaveString(key string) string {
-	value := config.String(key)
-
-	if len(value) == 0 {
-		log.Panic("Key not found or has no value in config file: ", key)
+		log.Panicf("Error converting value for %s collector option...\n", err)
 	}
 
-	return value
-}
-
-func (*ConfigFileReader) MustHaveStringList(key string) []string {
-	list := config.Strings(key)
-
-	if len(list) == 0 {
-		log.Panic("Key not found or has no list items in config file: ", key)
-	}
-
-	return list
+	return collect
 }

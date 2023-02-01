@@ -21,12 +21,14 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	log "github.com/sirupsen/logrus"
 )
 
 var (
 	configFile       *string
-	configFileReader ConfigFileReader
+	configFileReader *ConfigFileReader
+	collectorCreator map[string]NewCollectorHandle
 )
 
 const (
@@ -34,11 +36,7 @@ const (
 	defaultPort       = "9850"
 )
 
-func register(target string, login *Login) {
-	// TODO: Modulize collectors
-	c := newPminfoCollector(target, login)
-	prometheus.MustRegister(c)
-}
+type NewCollectorHandle func(string, Login) prometheus.Collector
 
 func main() {
 	configFile = flag.String("configFile", defaultConfigFile, "Path to YAML config file")
@@ -49,32 +47,25 @@ func main() {
 
 	initLogging(*logLevel)
 
-	configFileReader.LoadFile(*configFile)
+	configFileReader = newConfigFileReader(*configFile)
 
-	login := newLogin(
-		configFileReader.MustHaveString("login.user"),
-		configFileReader.MustHaveString("login.password"))
+	collectorCreator = make(map[string]NewCollectorHandle)
 
-	log.Debug("STARTED")
-
-	targets := configFileReader.MustHaveStringList("targets")
-	targetCount := len(targets)
-
-	if log.IsLevelEnabled(log.DebugLevel) {
-
-		log.Debug("Count of targets: ", targetCount)
-
-		for i := 0; i < targetCount; i++ {
-			log.Debugln("Target: ", targets[i])
-		}
+	if configFileReader.collectPminfo {
+		collectorCreator["pminfo"] = newPminfoCollector
 	}
 
-	for i := 0; i < targetCount; i++ {
-		register(targets[i], login)
+	targetCount := len(configFileReader.targets)
+
+	for name, collector := range collectorCreator {
+
+		log.Debug("Enable collector: ", name)
+
+		for i := 0; i < targetCount; i++ {
+			prometheus.MustRegister(collector(configFileReader.targets[i], configFileReader.login))
+		}
 	}
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":"+*port, nil)
-
-	log.Debug("FINISHED")
 }
