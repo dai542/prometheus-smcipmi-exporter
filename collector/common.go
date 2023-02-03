@@ -13,24 +13,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package main
+package collector
 
-import "log"
+import "github.com/prometheus/client_golang/prometheus"
 
-type Login struct {
-	user     string
-	password string
-}
+const (
+	Namespace      = "smcipmi"
+	CmdSmcIpmiTool = "SMCIPMITool"
+)
 
-func newLogin(user string, password string) *Login {
+// Function signature for NewCollector...
+type NewCollectorHandle func(string, string, string) prometheus.Collector
 
-	if len(user) == 0 {
-		log.Panic("No login user provided")
-	}
-
-	if len(password) == 0 {
-		log.Panic("No login password provided")
-	}
-
-	return &Login{user, password}
+type metricTemplate struct {
+	desc         *prometheus.Desc
+	valueType    prometheus.ValueType
+	valueCreator func(string) float64
 }

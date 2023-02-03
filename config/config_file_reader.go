@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package main
+package config
 
 import (
 	"log"
@@ -21,22 +21,28 @@ import (
 )
 
 type ConfigFileReader struct {
-	login         Login
-	targets       []string
-	collectPminfo bool
+	Targets  []string
+	User     string
+	Password string
+
+	CollectPminfo bool
+
 	GenericConfigFileReader
 }
 
-func newConfigFileReader(filepath string) *ConfigFileReader {
+func NewConfigFileReader(filepath string) *ConfigFileReader {
 	c := new(ConfigFileReader)
 
 	c.MustLoadFile(filepath)
 
-	c.login = *newLogin(c.MustHaveString("login.user"), c.MustHaveString("login.password"))
-	c.targets = c.MustHaveStringList("targets")
+	// TODO Check values...
+	c.Targets = c.MustHaveStringList("targets")
+	c.User = c.MustHaveString("login.user")
+	c.Password = c.MustHaveString("login.password")
 
 	collectorMap := c.MustHaveMap("collectors")
-	c.collectPminfo = c.mustHaveCollectorOption(collectorMap, "pminfo")
+
+	c.CollectPminfo = c.mustHaveCollectorOption(collectorMap, "pminfo")
 
 	return c
 }

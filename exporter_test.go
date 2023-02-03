@@ -19,6 +19,9 @@ import (
 	"flag"
 	"os"
 	"testing"
+
+	"prometheus-smcipmi-exporter/collector"
+	"prometheus-smcipmi-exporter/util"
 )
 
 const (
@@ -29,11 +32,13 @@ var (
 	pminfoFile *string
 )
 
-func TestParsePminfoModules(t *testing.T) {
+func TestParsePminfoModule(t *testing.T) {
 
-	pminfoData := mustReadFile(pminfoFile)
+	var collector collector.PminfoCollector
 
-	metrics := collector.parsePminfoModules(pminfoData)
+	pminfoData := util.MustReadFile(pminfoFile)
+
+	metrics := collector.ParsePminfoModules(pminfoData)
 
 	if len(metrics) == 0 {
 		t.Error("No pminfo metrics recieved")

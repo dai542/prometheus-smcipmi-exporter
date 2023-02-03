@@ -18,6 +18,9 @@ package main
 import (
 	"flag"
 	"net/http"
+	"os"
+	"prometheus-smcipmi-exporter/collector"
+	"prometheus-smcipmi-exporter/config"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -27,16 +30,35 @@ import (
 
 var (
 	configFile       *string
-	configFileReader *ConfigFileReader
-	collectorCreator map[string]NewCollectorHandle
+	configFileReader *config.ConfigFileReader
+	collectorCreator map[string]collector.NewCollectorHandle
 )
 
 const (
 	defaultConfigFile = "config.yml"
 	defaultPort       = "9850"
+	defaultLogLevel   = "ERROR"
+	version           = "0.0.1"
 )
 
-type NewCollectorHandle func(string, Login) prometheus.Collector
+func initLogging(logLevel string) {
+
+	if logLevel == "ERROR" {
+		log.SetLevel(log.ErrorLevel)
+	} else if logLevel == "WARNING" {
+		log.SetLevel(log.WarnLevel)
+	} else if logLevel == "INFO" {
+		log.SetLevel(log.InfoLevel)
+	} else if logLevel == "DEBUG" {
+		log.SetLevel(log.DebugLevel)
+	} else if logLevel == "TRACE" {
+		log.SetLevel(log.TraceLevel)
+	} else {
+		log.Fatal("Not supported log level set")
+	}
+
+	log.SetOutput(os.Stdout)
+}
 
 func main() {
 	configFile = flag.String("configFile", defaultConfigFile, "Path to YAML config file")
@@ -47,22 +69,20 @@ func main() {
 
 	initLogging(*logLevel)
 
-	configFileReader = newConfigFileReader(*configFile)
+	configFileReader = config.NewConfigFileReader(*configFile)
 
-	collectorCreator = make(map[string]NewCollectorHandle)
+	collectorCreator = make(map[string]collector.NewCollectorHandle)
 
-	if configFileReader.collectPminfo {
-		collectorCreator["pminfo"] = newPminfoCollector
+	if configFileReader.CollectPminfo {
+		collectorCreator["pminfo"] = collector.NewPminfoCollector
 	}
-
-	targetCount := len(configFileReader.targets)
 
 	for name, collector := range collectorCreator {
 
 		log.Debug("Enable collector: ", name)
 
-		for i := 0; i < targetCount; i++ {
-			prometheus.MustRegister(collector(configFileReader.targets[i], configFileReader.login))
+		for i := 0; i < len(configFileReader.Targets); i++ {
+			prometheus.MustRegister(collector(configFileReader.Targets[i], configFileReader.User, configFileReader.Password))
 		}
 	}
 

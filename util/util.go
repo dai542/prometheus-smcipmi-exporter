@@ -13,48 +13,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package main
+package util
 
 import (
 	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
-
-	log "github.com/sirupsen/logrus"
 )
-
-const (
-	version         = "0.0.1"
-	namespace       = "smcipmi"
-	cmdSmcIpmiTool  = "SMCIPMITool"
-	defaultLogLevel = "ERROR"
-)
-
-// TODO: Collector interface would be good to have and load proper collector at runtime as neccessary
-var collector pminfoCollector
-
-func initLogging(logLevel string) {
-
-	if logLevel == "ERROR" {
-		log.SetLevel(log.ErrorLevel)
-	} else if logLevel == "WARNING" {
-		log.SetLevel(log.WarnLevel)
-	} else if logLevel == "INFO" {
-		log.SetLevel(log.InfoLevel)
-	} else if logLevel == "DEBUG" {
-		log.SetLevel(log.DebugLevel)
-	} else if logLevel == "TRACE" {
-		log.SetLevel(log.TraceLevel)
-	} else {
-		log.Fatal("Not supported log level set")
-	}
-
-	log.SetOutput(os.Stdout)
-}
 
 // Reads a file and panics on error
-func mustReadFile(file *string) string {
+func MustReadFile(file *string) string {
 	data, err := os.ReadFile(*file)
 
 	if err != nil {
@@ -64,7 +33,7 @@ func mustReadFile(file *string) string {
 	return string(data)
 }
 
-func executeCommand(command string, args ...string) (*string, error) {
+func ExecuteCommand(command string, args ...string) (*string, error) {
 	_, err := exec.LookPath(command)
 	if err != nil {
 		return nil, err
