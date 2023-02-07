@@ -108,21 +108,24 @@ func (c *PminfoCollector) parsePminfoModule(data string) []prometheus.Metric {
 	for _, module := range matchedModules {
 
 		number := module[pminfoModuleNumberIndex]
-
 		items := module[pminfoModuleItemsIndex]
 
-		log.Debug("Module number:", number)
+		// Create itemMap for fast O(1) lookup
+		itemMap := make(map[string]string)
 
 		for _, item := range pminfoItemRegex.FindAllStringSubmatch(items, -1) {
 
 			name := strings.TrimSpace(item[pminfoItemNameIndex])
 			value := strings.TrimSpace(item[pminfoItemValueIndex])
 
-			// TODO: Iterate over pminfoMetricTemplates and check if key in ItemMap...
-			metricTemplate, foundMetric := pminfoMetricTemplates[name]
+			itemMap[name] = value
+		}
 
-			if foundMetric {
+		for metricName, metricTemplate := range pminfoMetricTemplates {
 
+			value, found := itemMap[metricName]
+
+			if found {
 				slice = append(
 					slice,
 					prometheus.MustNewConstMetric(
@@ -131,9 +134,14 @@ func (c *PminfoCollector) parsePminfoModule(data string) []prometheus.Metric {
 						metricTemplate.valueCreator(value),
 						c.target, number,
 					))
-			} //TODO: else { } not found...
+			} else {
+				log.Panicln("Metric not found: ", metricName)
+			}
+
 		}
+
 	}
+
 	return slice
 }
 

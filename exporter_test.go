@@ -30,14 +30,14 @@ var (
 )
 
 // TODO: create local test for exported metrics via HTTP...
-//
+// //
 // func TestParsePminfoModule(t *testing.T) {
 
 // 	var collector collector.PminfoCollector
 
 // 	pminfoData := util.MustReadFile(pminfoFile)
 
-// 	metrics := collector.parsePminfoModules(pminfoData)
+// 	metrics := collector.ParsePminfoModule(pminfoData)
 
 // 	if len(metrics) == 0 {
 // 		t.Error("No pminfo metrics recieved")
