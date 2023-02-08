@@ -90,9 +90,7 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 		log.Fatal(err)
 	}
 
-	metrics := c.parsePminfoModule(*pminfoData)
-
-	for _, metric := range metrics {
+	for _, metric := range c.createMetrics(*pminfoData) {
 		ch <- metric
 	}
 }
@@ -100,7 +98,7 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 func (c *PminfoCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
-func (c *PminfoCollector) parsePminfoModule(data string) []prometheus.Metric {
+func (c *PminfoCollector) createMetrics(data string) []prometheus.Metric {
 	slice := make([]prometheus.Metric, 0, 20)
 
 	matchedModules := pminfoModuleRegex.FindAllStringSubmatch(data, -1)
