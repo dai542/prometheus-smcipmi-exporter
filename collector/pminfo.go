@@ -84,7 +84,7 @@ func NewPminfoCollector(target string, user string, password string) prometheus.
 func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 	log.Debug("Collecting pminfo module data from target: ", c.target)
 
-	pminfoData, err := util.ExecuteCommand(CmdSmcIpmiTool, c.target, c.user, c.password, "pminfo")
+	pminfoData, err := util.ExecuteCommandWithSudo(CmdSmcIpmiTool, c.target, c.user, c.password, "pminfo")
 
 	if err != nil {
 		log.Fatal(err)

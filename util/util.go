@@ -33,13 +33,10 @@ func MustReadFile(file *string) string {
 	return string(data)
 }
 
-func ExecuteCommand(command string, args ...string) (*string, error) {
-	_, err := exec.LookPath(command)
-	if err != nil {
-		return nil, err
-	}
+func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
+	cmdWithArgs := append([]string{command}, args...)
 
-	cmd := exec.Command(command, args...)
+	cmd := exec.Command("sudo", cmdWithArgs...)
 
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
