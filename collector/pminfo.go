@@ -88,6 +88,7 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 
 	if err != nil {
 		log.Error(err)
+		ch <- createErrorMetric("pminfo", c.target)
 		return
 	}
 

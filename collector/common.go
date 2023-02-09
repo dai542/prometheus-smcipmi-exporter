@@ -30,3 +30,17 @@ type metricTemplate struct {
 	valueType    prometheus.ValueType
 	valueCreator func(string) float64
 }
+
+func createErrorMetric(collector string, target string) prometheus.Metric {
+	return prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			prometheus.BuildFQName(Namespace, "collector", "error"),
+			"Only set if an error has occurred in a collector",
+			[]string{"name", "target"},
+			nil,
+		),
+		prometheus.GaugeValue,
+		1,
+		collector, target,
+	)
+}
