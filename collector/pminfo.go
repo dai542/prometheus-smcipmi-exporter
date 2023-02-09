@@ -87,7 +87,8 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 	pminfoData, err := util.ExecuteCommandWithSudo(CmdSmcIpmiTool, c.target, c.user, c.password, "pminfo")
 
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return
 	}
 
 	for _, metric := range c.createMetrics(*pminfoData) {

@@ -17,6 +17,7 @@ package util
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -56,6 +57,11 @@ func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
 	// TODO: Timeout handling?
 	err = cmd.Wait()
 	if err != nil {
+
+		if len(out) != 0 {
+			return nil, errors.New(err.Error() + " - " + string(out))
+		}
+
 		return nil, err
 	}
 
