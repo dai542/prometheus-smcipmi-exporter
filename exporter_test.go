@@ -18,7 +18,11 @@ package main
 import (
 	"flag"
 	"os"
+	"prometheus-smcipmi-exporter/collector"
+	"prometheus-smcipmi-exporter/util"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -30,19 +34,27 @@ var (
 )
 
 // TODO: create local test for exported metrics via HTTP...
-// //
-// func TestParsePminfoModule(t *testing.T) {
+func TestParsePminfoModule(t *testing.T) {
 
-// 	var collector collector.PminfoCollector
+	var collector collector.PminfoCollector
 
-// 	pminfoData := util.MustReadFile(pminfoFile)
+	pminfoData := util.MustReadFile(pminfoFile)
 
-// 	metrics := collector.ParsePminfoModule(pminfoData)
+	metrics := collector.CreateMetrics(pminfoData)
 
-// 	if len(metrics) == 0 {
-// 		t.Error("No pminfo metrics recieved")
-// 	}
-// }
+	for _, m := range metrics {
+		log.Debug(m.Desc().String())
+	}
+
+	if len(metrics) == 0 {
+		t.Error("No pminfo metrics recieved")
+	}
+
+	if len(metrics) != 8 {
+		t.Error("Incomplete count of pminfo metrics recieved")
+	}
+
+}
 
 func TestMain(m *testing.M) {
 

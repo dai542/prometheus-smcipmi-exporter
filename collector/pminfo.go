@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	pminfoModuleRegex       = regexp.MustCompile(`(?ms:(?:\[SlaveAddress = [\d\w]+\] \[Module (?P<number>\d+)\])(?P<items>.*?)(?:^\s?$|\z))`)
+	pminfoModuleRegex       = regexp.MustCompile(`(?ms:(?:\[Module (?P<number>\d+)\])(?P<items>.*?)(?:^\s?$|\z))`)
 	pminfoModuleNumberIndex = pminfoModuleRegex.SubexpIndex("number")
 	pminfoModuleItemsIndex  = pminfoModuleRegex.SubexpIndex("items")
 
@@ -92,7 +92,7 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	for _, metric := range c.createMetrics(*pminfoData) {
+	for _, metric := range c.CreateMetrics(*pminfoData) {
 		ch <- metric
 	}
 }
@@ -100,7 +100,7 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 func (c *PminfoCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
-func (c *PminfoCollector) createMetrics(data string) []prometheus.Metric {
+func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 	slice := make([]prometheus.Metric, 0, 20)
 
 	matchedModules := pminfoModuleRegex.FindAllStringSubmatch(data, -1)
