@@ -136,6 +136,7 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 				val, err := metricTemplate.valueCreator(value)
 
 				if err != nil {
+					log.Errorln(err)
 					m = createErrorMetric("pminfo", c.target)
 				} else {
 					m = prometheus.MustNewConstMetric(
@@ -200,7 +201,6 @@ func convertPowerConsumptionValue(value string) (float64, error) {
 	powerConsumption, err := strconv.ParseFloat(matched[pminfoPowerConsumptionValueIndex], 10)
 
 	if err != nil {
-		log.Errorln(err)
 		return -1, err
 	}
 
