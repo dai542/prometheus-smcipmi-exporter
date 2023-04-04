@@ -68,7 +68,7 @@ PWS Revision                   |                            1.3
  Fan 1                          |                       6560 RPM
  Fan 2                          |                          0 RPM
  Main Output Power              |                          170 W
- Input Power                    |                          184 W
+ Input Power                    |                            N/A
  PMBus Revision                 |                           0x22
  PWS Serial Number              |                P1K2ACJ05UT0477
  PWS Module Number              |                   PWS-1K23A-1R

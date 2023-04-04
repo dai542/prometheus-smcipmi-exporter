@@ -16,6 +16,7 @@
 package collector
 
 import (
+	"fmt"
 	"prometheus-smcipmi-exporter/util"
 	"regexp"
 	"strconv"
@@ -34,6 +35,9 @@ var (
 	pminfoItemRegex      = regexp.MustCompile(`(?m:(?P<name>(?:\s*[\w]+\s?)+)\s*\|\s*(?P<value>.*))`)
 	pminfoItemNameIndex  = pminfoItemRegex.SubexpIndex("name")
 	pminfoItemValueIndex = pminfoItemRegex.SubexpIndex("value")
+
+	pminfoPowerConsumptionRegex      = regexp.MustCompile(`^(?P<value>\d{1,3}) W$`)
+	pminfoPowerConsumptionValueIndex = pminfoPowerConsumptionRegex.SubexpIndex("value")
 
 	pminfoMetricTemplates = make(map[string]metricTemplate)
 
@@ -126,14 +130,24 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 			value, found := itemMap[metricName]
 
 			if found {
-				slice = append(
-					slice,
-					prometheus.MustNewConstMetric(
+
+				var m prometheus.Metric
+
+				val, err := metricTemplate.valueCreator(value)
+
+				if err != nil {
+					m = createErrorMetric("pminfo", c.target)
+				} else {
+					m = prometheus.MustNewConstMetric(
 						metricTemplate.desc,
 						metricTemplate.valueType,
-						metricTemplate.valueCreator(value),
-						c.target, number,
-					))
+						val,
+						c.target, number, // labelValues
+					)
+				}
+
+				slice = append(slice, m)
+
 			} else {
 				log.Panicln("Metric not found: ", metricName)
 			}
@@ -158,37 +172,36 @@ func validatePminfoRegex() {
 	if pminfoItemValueIndex == -1 {
 		panic("Index value not found in pminfoItemRegex")
 	}
+	if pminfoPowerConsumptionValueIndex == -1 {
+		panic("Index value not found in pminfoPowerConsumptionRegex")
+	}
 }
 
-// TODO: error found during parsing...? -> return (float64, error)
-// Valid values: OK, OFF and what else?
-func convertPowerSupplyStatusValue(value string) float64 {
+// TODO: Valid values: OK, OFF and what else?
+func convertPowerSupplyStatusValue(value string) (float64, error) {
 	if strings.Contains(value, "OK") {
-		return 0
+		return 0, nil
 	} else if strings.Contains(value, "OFF") {
-		return 1
+		return 1, nil
 	} else {
-		return 2
+		return 2, nil
 	}
 }
 
-// TODO: error found during parsing...? -> return (float64, error)
-func convertPowerConsumptionValue(value string) float64 {
-	slice := strings.Split(value, " ")
+func convertPowerConsumptionValue(value string) (float64, error) {
 
-	if len(slice) != 2 {
-		log.Panicln("Length of Input Power item is invalid: ", value)
+	matched := pminfoPowerConsumptionRegex.FindStringSubmatch(value)
+
+	if matched == nil {
+		return -1, fmt.Errorf("Regex validation of power consumption failed for value: %s", value)
 	}
 
-	if slice[1] != "W" {
-		log.Panicln("Unit in Input Power item is not W: ", value)
-	}
-
-	powerConsumption, err := strconv.ParseFloat(slice[0], 10)
+	powerConsumption, err := strconv.ParseFloat(matched[pminfoPowerConsumptionValueIndex], 10)
 
 	if err != nil {
-		log.Panicln(err)
+		log.Errorln(err)
+		return -1, err
 	}
 
-	return powerConsumption
+	return powerConsumption, nil
 }
