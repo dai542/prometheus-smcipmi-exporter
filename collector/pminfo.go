@@ -177,14 +177,15 @@ func validatePminfoRegex() {
 	}
 }
 
-// TODO: Valid values: OK, OFF and what else?
 func convertPowerSupplyStatusValue(value string) (float64, error) {
 	if strings.Contains(value, "OK") {
 		return 0, nil
+	} else if strings.Contains(value, "FAULT") {
+		return 2, nil
 	} else if strings.Contains(value, "OFF") {
 		return 1, nil
 	} else {
-		return 2, nil
+		return -1, fmt.Errorf("Unknown power supply status found: %s", value)
 	}
 }
 
