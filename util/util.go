@@ -21,6 +21,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Reads a file and panics on error
@@ -38,6 +40,8 @@ func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
 	cmdWithArgs := append([]string{command}, args...)
 
 	cmd := exec.Command("sudo", cmdWithArgs...)
+
+	log.Debug("Executing command: ", cmd.String())
 
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
@@ -65,8 +69,12 @@ func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
 		return nil, err
 	}
 
-	// TrimSpace on []bytes is more efficient than calling TrimSpace on a string since it creates a copy
+	// TrimSpace on []bytes is more efficient than TrimSpace on a string since it creates a copy
 	content := string(bytes.TrimSpace(out))
+
+	if len(content) == 0 {
+		return nil, errors.New("Empty content recieved for command: " + cmd.String())
+	}
 
 	return &content, nil
 }
