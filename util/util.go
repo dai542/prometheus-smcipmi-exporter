@@ -18,7 +18,7 @@ package util
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -43,34 +43,26 @@ func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
 
 	log.Debug("Executing command: ", cmd.String())
 
-	pipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
+	err := cmd.Run()
 
-	out, err := ioutil.ReadAll(pipe)
 	if err != nil {
-		return nil, err
-	}
-
-	// TODO: Timeout handling?
-	err = cmd.Wait()
-	if err != nil {
-
-		if len(out) != 0 {
-			return nil, errors.New(err.Error() + " - " + string(out))
+		errMsg := fmt.Sprintf("Error: %s", err.Error())
+		if len(stderr.String()) != 0 {
+			errMsg += fmt.Sprintf(" - STDERR: %s", stderr.String())
 		}
-
-		return nil, err
+		if len(stdout.String()) != 0 {
+			errMsg += fmt.Sprintf(" - STDOUT: %s", stdout.String())
+		}
+		return nil, fmt.Errorf(errMsg)
 	}
 
-	// TrimSpace on []bytes is more efficient than TrimSpace on a string since it creates a copy
-	content := string(bytes.TrimSpace(out))
+	// TrimSpace on []byte is more efficient than TrimSpace on a string since it creates a copy
+	content := string(bytes.TrimSpace(stdout.Bytes()))
 
 	if len(content) == 0 {
 		return nil, errors.New("Empty content recieved for command: " + cmd.String())
