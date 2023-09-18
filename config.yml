@@ -2,9 +2,9 @@ login:
   user:     whoever
   password: secret
 
+collectors:
+  pminfo: True
+
 targets:
   - target.1
   - target.2
-
-collectors:
-  pminfo: True
