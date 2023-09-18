@@ -150,6 +150,8 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 				slice = append(slice, m)
 
 			} else {
+				// TODO: Logger does not make formatted output! Change logger?!
+				fmt.Printf("Metric not found: %s\nInData:\n%s\n", metricName, data)
 				log.Panicln("Metric not found: ", metricName)
 			}
 
