@@ -32,7 +32,7 @@ var (
 	pminfoModuleNumberIndex = pminfoModuleRegex.SubexpIndex("number")
 	pminfoModuleItemsIndex  = pminfoModuleRegex.SubexpIndex("items")
 
-	pminfoItemRegex      = regexp.MustCompile(`(?m:(?P<name>(?:\s*[\w]+\s?)+)\s*\|\s*(?P<value>.*))`)
+	pminfoItemRegex      = regexp.MustCompile(`(?m:(?P<name>(?:\s*[\w/(/)]+\s?)+)\s*\|\s*(?P<value>.*))`)
 	pminfoItemNameIndex  = pminfoItemRegex.SubexpIndex("name")
 	pminfoItemValueIndex = pminfoItemRegex.SubexpIndex("value")
 
@@ -114,7 +114,7 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 		number := module[pminfoModuleNumberIndex]
 		items := module[pminfoModuleItemsIndex]
 
-		// Create itemMap for fast O(1) lookup
+		// Create itemMap for O(1) lookup
 		itemMap := make(map[string]string)
 
 		for _, item := range pminfoItemRegex.FindAllStringSubmatch(items, -1) {
@@ -127,7 +127,18 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 
 		for metricName, metricTemplate := range pminfoMetricTemplates {
 
-			value, found := itemMap[metricName]
+			var value string
+			var found bool
+
+			// Input Power is independent of PWS Revision field, so always check it
+			if metricName == "Input Power" {
+				value, found = itemMap[metricName]
+				if !found {
+					value, found = itemMap["Input Power (DC)"]
+				}
+			} else {
+				value, found = itemMap[metricName]
+			}
 
 			if found {
 
