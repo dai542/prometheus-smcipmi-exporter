@@ -113,3 +113,22 @@ PWS Revision                   |                            1.3
  PWS Serial Number              |                P1K2ACI37NT0086
  PWS Module Number              |                   PWS-1K23A-1R
  PWS Revision                   |                            1.2
+
+[SlaveAddress = 9Ah] [Module 2]
+ Item                           |                          Value
+ ----                           |                          -----
+ Status                         |                          (00h)
+ Input Voltage                  |                          0.0 V
+ Input Current                  |                         0.17 A
+ Main Output Voltage            |                          0.0 V
+ Main Output Current            |                          0.0 A
+ Temperature 1                  |                        36C/97F
+ Temperature 2                  |                            N/A
+ Fan 1                          |                          0 RPM
+ Fan 2                          |                          0 RPM
+ Main Output Power              |                            0 W
+ Input Power                    |                            0 W
+ PMBus Revision                 |                            N/A
+ PWS Serial Number              |                            N/A
+ PWS Module Number              |                   PWS-1K21P-1R
+ PWS Revision                   |                            1.3
