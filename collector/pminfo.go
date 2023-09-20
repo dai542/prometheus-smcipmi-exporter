@@ -130,7 +130,11 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 			var value string
 			var found bool
 
-			// Input Power is independent of PWS Revision field, so always check it
+			// SMCIPMITool might return field `Input Power (DC)`.
+			// In the webinterface `AC Input Power` is displayed instead.
+			//
+			// If more fields have varying names displayed, the processing must be changed
+			// e.g. without map lookup and checking if substring is in the fields list.
 			if metricName == "Input Power" {
 				value, found = itemMap[metricName]
 				if !found {
