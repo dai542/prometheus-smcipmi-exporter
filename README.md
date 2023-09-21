@@ -2,7 +2,7 @@
 
 A Prometheus exporter to expose metrics specific to the [Supermicro IPMI Utilities SMCIPMITool](https://www.supermicro.com/de/solutions/management-software/ipmi-utilities).
 
-Why an exporter for SMCIPMITool?  
+Why an exporter for SMCIPMITool?
 
 Because FreeIPMI cannot access power supply information of a JBOD system provided by Supermicro.
 
@@ -40,3 +40,7 @@ Metrics have an additional prefix "pminfo_".
 | -------------------------- | -------------- | -------------------------------------------- |
 | power\_consumption\_watts  | target, module | Current power consumption measured in watts  |
 | power\_supply\_status      | target, module | Power supply status (0=OK, 1=OFF, 2=Failure) |
+
+## Grafana Dashboards
+
+Dashboards for Grafana are located in the [Dashboards](Dashboards) directory.
