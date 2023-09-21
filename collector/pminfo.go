@@ -32,7 +32,7 @@ var (
 	pminfoModuleNumberIndex = pminfoModuleRegex.SubexpIndex("number")
 	pminfoModuleItemsIndex  = pminfoModuleRegex.SubexpIndex("items")
 
-	pminfoItemRegex      = regexp.MustCompile(`(?m:(?P<name>(?:\s*[\w]+\s?)+)\s*\|\s*(?P<value>.*))`)
+	pminfoItemRegex      = regexp.MustCompile(`(?m:(?P<name>(?:\s*[\w/(/)]+\s?)+)\s*\|\s*(?P<value>.*))`)
 	pminfoItemNameIndex  = pminfoItemRegex.SubexpIndex("name")
 	pminfoItemValueIndex = pminfoItemRegex.SubexpIndex("value")
 
@@ -114,7 +114,7 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 		number := module[pminfoModuleNumberIndex]
 		items := module[pminfoModuleItemsIndex]
 
-		// Create itemMap for fast O(1) lookup
+		// Create itemMap for O(1) lookup
 		itemMap := make(map[string]string)
 
 		for _, item := range pminfoItemRegex.FindAllStringSubmatch(items, -1) {
@@ -127,7 +127,22 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 
 		for metricName, metricTemplate := range pminfoMetricTemplates {
 
-			value, found := itemMap[metricName]
+			var value string
+			var found bool
+
+			// SMCIPMITool might return field `Input Power (DC)`.
+			// In the webinterface `AC Input Power` is displayed instead.
+			//
+			// If more fields have varying names displayed, the processing must be changed
+			// e.g. without map lookup and checking if substring is in the fields list.
+			if metricName == "Input Power" {
+				value, found = itemMap[metricName]
+				if !found {
+					value, found = itemMap["Input Power (DC)"]
+				}
+			} else {
+				value, found = itemMap[metricName]
+			}
 
 			if found {
 
@@ -150,6 +165,8 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 				slice = append(slice, m)
 
 			} else {
+				// TODO: Logger does not make formatted output! Change logger?!
+				fmt.Printf("Metric not found: %s\nInData:\n%s\n", metricName, data)
 				log.Panicln("Metric not found: ", metricName)
 			}
 
@@ -183,7 +200,7 @@ func convertPowerSupplyStatusValue(value string) (float64, error) {
 		return 0, nil
 	} else if strings.Contains(value, "FAULT") {
 		return 2, nil
-	} else if strings.Contains(value, "OFF") {
+	} else if strings.Contains(value, "OFF") || strings.Contains(value, "(00h)") {
 		return 1, nil
 	} else {
 		return -1, fmt.Errorf("Unknown power supply status found: %s", value)
