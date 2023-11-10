@@ -20,6 +20,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	PminfoPsuStateOK     = 0.0
+	PminfoPsuStateOff    = 1.0
+	PminfoPsuStateError  = 2.0
+	PminfoPsuStateFaulty = 3.0
+)
+
 var (
 	pminfoModuleRegex       = regexp.MustCompile(`(?ms:(?:\[Module (?P<number>\d+)\])(?P<items>.*?)(?:^\s?$|\z))`)
 	pminfoModuleNumberIndex = pminfoModuleRegex.SubexpIndex("number")
@@ -191,22 +198,22 @@ func validatePminfoRegex() {
 func ConvertPowerSupplyStatusValue(value string) (float64, error) {
 
 	if strings.Contains(value, "OK") {
-		return 0, nil // 0=OK
+		return PminfoPsuStateOK, nil
 	}
 
 	if strings.Contains(value, "FAULT") {
-		return 2, nil // 2=Error
+		return PminfoPsuStateError, nil
 	}
 
 	trimmedValue := strings.TrimSpace(value)
 
 	if strings.HasPrefix(trimmedValue, "[UNIT IS OFF]") ||
 		trimmedValue == "(00h)" {
-		return 1, nil // 1=OFF
+		return PminfoPsuStateOff, nil
 	}
 
 	if strings.HasPrefix(trimmedValue, "[Over Current Fault]") {
-		return 3, nil // 3=Faulty
+		return PminfoPsuStateFaulty, nil
 	}
 
 	return -1, fmt.Errorf("Unknown power supply status found: %s", value)

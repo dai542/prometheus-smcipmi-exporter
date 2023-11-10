@@ -31,23 +31,24 @@ func TestParsePminfoModule(t *testing.T) {
 	expected := 14
 	received := len(metrics)
 	if received != expected {
-		t.Errorf("Incomplete count of pminfo metrics - expected: %d - received: %d", expected, received)
+		t.Errorf("Incomplete count of pminfo metrics - "+
+			"expected: %d - received: %d", expected, received)
 	}
 
 }
 
 func TestPminfoConvertPowerSupplyStatusValue(t *testing.T) {
 
-	testMap := make(map[string]float64) // [PSU-Status]expectedValue
-	testMap["                             OK"] = 0.0
-	testMap["                Power Supply OK"] = 0.0
-	testMap["            [UNIT IS OFF] (40h)"] = 1.0
-	testMap["                          (00h)"] = 1.0
-	testMap[" [IOUT_OC_FAULT][UNIT IS OFF] (50h)"] = 2.0
-	testMap[" [VIN_UV_FAULT][UNIT IS OFF] (48h)"] = 2.0
-	testMap["     [Over Current Fault] (08h)"] = 3.0
+	m := make(map[string]float64) // [PSU-Status]expectedValue
+	m["                             OK"] = collector.PminfoPsuStateOK
+	m["                Power Supply OK"] = collector.PminfoPsuStateOK
+	m["            [UNIT IS OFF] (40h)"] = collector.PminfoPsuStateOff
+	m["                          (00h)"] = collector.PminfoPsuStateOff
+	m["     [Over Current Fault] (08h)"] = collector.PminfoPsuStateFaulty
+	m[" [IOUT_OC_FAULT][UNIT IS OFF] (50h)"] = collector.PminfoPsuStateError
+	m[" [VIN_UV_FAULT][UNIT IS OFF] (48h)"] = collector.PminfoPsuStateError
 
-	for psuStatus, expected := range testMap {
+	for psuStatus, expected := range m {
 		received, err := collector.ConvertPowerSupplyStatusValue(psuStatus)
 		if err != nil {
 			t.Error("No error expected - but received: ", err)
