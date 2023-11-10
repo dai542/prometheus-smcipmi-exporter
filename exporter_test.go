@@ -9,35 +9,20 @@
 package main
 
 import (
-	"flag"
-	"os"
 	"prometheus-smcipmi-exporter/collector"
 	"prometheus-smcipmi-exporter/util"
 	"testing"
-
-	log "github.com/sirupsen/logrus"
-)
-
-const (
-	defaultPminfoFile = "pminfo.txt"
 )
 
 var (
-	pminfoFile *string
+	testPminfoFile = "pminfo.txt"
 )
 
-// TODO: create local test for exported metrics via HTTP...
 func TestParsePminfoModule(t *testing.T) {
 
 	var collector collector.PminfoCollector
-
-	pminfoData := util.MustReadFile(pminfoFile)
-
+	pminfoData := util.MustReadFile(&testPminfoFile)
 	metrics := collector.CreateMetrics(pminfoData)
-
-	for _, m := range metrics {
-		log.Debug(m.Desc().String())
-	}
 
 	if len(metrics) == 0 {
 		t.Error("No pminfo metrics received")
@@ -51,14 +36,25 @@ func TestParsePminfoModule(t *testing.T) {
 
 }
 
-func TestMain(m *testing.M) {
+func TestPminfoConvertPowerSupplyStatusValue(t *testing.T) {
 
-	pminfoFile = flag.String("pminfoFile", defaultPminfoFile, "A file with pminfo output generated from SMCIPMITool to be processed")
-	logLevel := flag.String("log", defaultLogLevel, "Sets log level - ERROR, WARNING, INFO, DEBUG or TRACE")
+	testMap := make(map[string]float64) // [PSU-Status]expectedValue
+	testMap["                             OK"] = 0.0
+	testMap["                Power Supply OK"] = 0.0
+	testMap["            [UNIT IS OFF] (40h)"] = 1.0
+	testMap["                          (00h)"] = 1.0
+	testMap[" [IOUT_OC_FAULT][UNIT IS OFF] (50h)"] = 2.0
+	testMap[" [VIN_UV_FAULT][UNIT IS OFF] (48h)"] = 2.0
+	testMap["     [Over Current Fault] (08h)"] = 3.0
 
-	flag.Parse()
-
-	initLogging(*logLevel)
-
-	os.Exit(m.Run())
+	for psuStatus, expected := range testMap {
+		received, err := collector.ConvertPowerSupplyStatusValue(psuStatus)
+		if err != nil {
+			t.Error("No error expected - but received: ", err)
+		}
+		if received != float64(expected) {
+			t.Errorf("Convertion of PSU value vailed for: %s, "+
+				"expected: %v - received: %v", psuStatus, expected, received)
+		}
+	}
 }

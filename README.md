@@ -39,7 +39,7 @@ Metrics have an additional prefix "pminfo_".
 | Metric                     | Labels         | Description                                  |
 | -------------------------- | -------------- | -------------------------------------------- |
 | power\_consumption\_watts  | target, module | Current power consumption measured in watts  |
-| power\_supply\_status      | target, module | Power supply status (0=OK, 1=OFF, 2=Failure) |
+| power\_supply\_status      | target, module | Power supply status (0=OK, 1=OFF, 2=Failure, 3=Faulty) |
 
 ## Grafana Dashboards
 

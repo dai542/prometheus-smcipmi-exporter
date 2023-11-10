@@ -37,18 +37,18 @@ var (
 	pminfoPowerSupplyStatusMetricTemplate = metricTemplate{
 		desc:         pminfoPowerSupplyStatusDesc,
 		valueType:    prometheus.GaugeValue,
-		valueCreator: convertPowerSupplyStatusValue,
+		valueCreator: ConvertPowerSupplyStatusValue,
 	}
 
 	pminfoPowerConsumptionMetricTemplate = metricTemplate{
 		desc:         pminfoPowerConsumptionDesc,
 		valueType:    prometheus.GaugeValue,
-		valueCreator: convertPowerConsumptionValue,
+		valueCreator: ConvertPowerConsumptionValue,
 	}
 
 	pminfoPowerSupplyStatusDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(Namespace, "pminfo", "power_supply_status"),
-		"Power supply status (0=OK, 1=OFF, 2=Failure)",
+		"Power supply status (0=OK, 1=OFF, 2=Failure, 3=Faulty)",
 		[]string{"target", "module"},
 		nil,
 	)
@@ -188,19 +188,31 @@ func validatePminfoRegex() {
 	}
 }
 
-func convertPowerSupplyStatusValue(value string) (float64, error) {
+func ConvertPowerSupplyStatusValue(value string) (float64, error) {
+
 	if strings.Contains(value, "OK") {
-		return 0, nil
-	} else if strings.Contains(value, "FAULT") {
-		return 2, nil
-	} else if strings.Contains(value, "OFF") || strings.Contains(value, "(00h)") {
-		return 1, nil
-	} else {
-		return -1, fmt.Errorf("Unknown power supply status found: %s", value)
+		return 0, nil // 0=OK
 	}
+
+	if strings.Contains(value, "FAULT") {
+		return 2, nil // 2=Error
+	}
+
+	trimmedValue := strings.TrimSpace(value)
+
+	if strings.HasPrefix(trimmedValue, "[UNIT IS OFF]") ||
+		trimmedValue == "(00h)" {
+		return 1, nil // 1=OFF
+	}
+
+	if strings.HasPrefix(trimmedValue, "[Over Current Fault]") {
+		return 3, nil // 3=Faulty
+	}
+
+	return -1, fmt.Errorf("Unknown power supply status found: %s", value)
 }
 
-func convertPowerConsumptionValue(value string) (float64, error) {
+func ConvertPowerConsumptionValue(value string) (float64, error) {
 
 	matched := pminfoPowerConsumptionRegex.FindStringSubmatch(value)
 
