@@ -77,10 +77,11 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
+      "description": "Power Supply Status (0=OK, 1=WARNING, 2=ERROR)",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
             "axisLabel": "",
@@ -113,7 +114,28 @@
             }
           },
           "decimals": 0,
-          "mappings": [],
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "OK"
+                },
+                "1": {
+                  "color": "yellow",
+                  "index": 1,
+                  "text": "Warning"
+                },
+                "2": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "Error"
+                }
+              },
+              "type": "value"
+            }
+          ],
           "max": 2,
           "min": 0,
           "thresholds": {
@@ -383,6 +405,6 @@
   "timezone": "",
   "title": "SMCIPMI Exporter Overview",
   "uid": "xjpZVN1Vz",
-  "version": 10,
+  "version": 12,
   "weekStart": ""
 }
