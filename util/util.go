@@ -10,7 +10,6 @@ package util
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -54,11 +53,12 @@ func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
 		return nil, fmt.Errorf(errMsg)
 	}
 
-	// TrimSpace on []byte is more efficient than TrimSpace on a string since it creates a copy
+	// TrimSpace on []byte is more efficient than
+	// TrimSpace on a string since it creates a copy
 	content := string(bytes.TrimSpace(stdout.Bytes()))
 
 	if len(content) == 0 {
-		return nil, errors.New("Empty content recieved for command: " + cmd.String())
+		return nil, fmt.Errorf("No output for command: %s", cmd.String())
 	}
 
 	return &content, nil

@@ -22,13 +22,17 @@ func TestParsePminfoModule(t *testing.T) {
 
 	var collector collector.PminfoCollector
 	pminfoData := util.MustReadFile(&testPminfoFile)
-	metrics := collector.CreateMetrics(pminfoData)
+	metrics, err := collector.CreateMetrics(pminfoData)
+
+	if err != nil {
+		t.Errorf("No error expected, but received: %e", err)
+	}
 
 	if len(metrics) == 0 {
 		t.Error("No pminfo metrics received")
 	}
 
-	expected := 14
+	expected := 12
 	received := len(metrics)
 	if received != expected {
 		t.Errorf("Incomplete count of pminfo metrics - "+

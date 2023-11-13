@@ -75,7 +75,11 @@ func main() {
 		log.Debug("Enable collector: ", name)
 
 		for i := 0; i < len(configFileReader.Targets); i++ {
-			prometheus.MustRegister(collector(configFileReader.Targets[i], configFileReader.User, configFileReader.Password))
+			prometheus.MustRegister(
+				collector(
+					configFileReader.Targets[i],
+					configFileReader.User,
+					configFileReader.Password))
 		}
 	}
 

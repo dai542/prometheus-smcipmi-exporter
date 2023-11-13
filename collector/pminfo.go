@@ -88,7 +88,8 @@ func NewPminfoCollector(target string, user string, password string) prometheus.
 func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 	log.Debug("Collecting pminfo module data from target: ", c.target)
 
-	pminfoData, err := util.ExecuteCommandWithSudo(CmdSmcIpmiTool, c.target, c.user, c.password, "pminfo")
+	pminfoData, err := util.ExecuteCommandWithSudo(
+		CmdSmcIpmiTool, c.target, c.user, c.password, "pminfo")
 
 	if err != nil {
 		log.Error(err)
@@ -96,7 +97,15 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	for _, metric := range c.CreateMetrics(*pminfoData) {
+	metrics, err := c.CreateMetrics(*pminfoData)
+
+	if err != nil {
+		log.Error(err)
+		ch <- createErrorMetric("pminfo", c.target)
+		return
+	}
+
+	for _, metric := range metrics {
 		ch <- metric
 	}
 }
@@ -104,10 +113,14 @@ func (c *PminfoCollector) Collect(ch chan<- prometheus.Metric) {
 func (c *PminfoCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
-func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
+func (c *PminfoCollector) CreateMetrics(data string) ([]prometheus.Metric, error) {
 	slice := make([]prometheus.Metric, 0, 20)
 
 	matchedModules := pminfoModuleRegex.FindAllStringSubmatch(data, -1)
+
+	if matchedModules == nil {
+		return nil, fmt.Errorf("pminfoModuleRegex missmatch on data:\n%s", data)
+	}
 
 	for _, module := range matchedModules {
 
@@ -145,36 +158,26 @@ func (c *PminfoCollector) CreateMetrics(data string) []prometheus.Metric {
 			}
 
 			if found {
-
-				var m prometheus.Metric
-
 				val, err := metricTemplate.valueCreator(value)
 
 				if err != nil {
-					log.Errorln(err)
-					m = createErrorMetric("pminfo", c.target)
+					return nil, err
 				} else {
-					m = prometheus.MustNewConstMetric(
-						metricTemplate.desc,
-						metricTemplate.valueType,
-						val,
-						c.target, number, // labelValues
-					)
+					slice = append(slice,
+						prometheus.MustNewConstMetric(
+							metricTemplate.desc,
+							metricTemplate.valueType,
+							val,
+							c.target, number, // labelValues
+						))
 				}
-
-				slice = append(slice, m)
-
 			} else {
-				// TODO: Logger does not make formatted output! Change logger?!
-				fmt.Printf("Metric not found: %s\nInData:\n%s\n", metricName, data)
-				log.Panicln("Metric not found: ", metricName)
+				return nil, fmt.Errorf(
+					"Metric not found: %s\nInData:\n%s\n", metricName, data)
 			}
-
 		}
-
 	}
-
-	return slice
+	return slice, nil
 }
 
 func validatePminfoRegex() {
@@ -227,7 +230,8 @@ func ConvertPowerConsumptionValue(value string) (float64, error) {
 		return -1, fmt.Errorf("Regex validation of power consumption failed for value: %s", value)
 	}
 
-	powerConsumption, err := strconv.ParseFloat(matched[pminfoPowerConsumptionValueIndex], 10)
+	powerConsumption, err := strconv.ParseFloat(
+		matched[pminfoPowerConsumptionValueIndex], 10)
 
 	if err != nil {
 		return -1, err
