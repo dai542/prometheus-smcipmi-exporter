@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus SMCIPMI Exporter
+Documentation=https://github.com/GSI-HPC/prometheus-smcipmi-exporter
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/sbin/prometheus-smcipmi-exporter \
+-configFile=/etc/prometheus/prometheus-smcipmi-exporter-config.yml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
