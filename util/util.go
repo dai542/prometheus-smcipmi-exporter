@@ -29,37 +29,39 @@ func MustReadFile(file *string) string {
 }
 
 func ExecuteCommandWithSudo(command string, args ...string) (*string, error) {
-	cmdWithArgs := append([]string{command}, args...)
+    // 使用完整路径
+    fullPath := "/usr/local/bin/" + command
+    cmdWithArgs := append([]string{fullPath}, args...)
 
-	cmd := exec.Command("sudo", cmdWithArgs...)
+    cmd := exec.Command("sudo", cmdWithArgs...)
 
-	log.Debug("Executing command: ", cmd.String())
+    log.Debug("Executing command: ", cmd.String())
 
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+    var stdout bytes.Buffer
+    var stderr bytes.Buffer
+    cmd.Stdout = &stdout
+    cmd.Stderr = &stderr
 
-	err := cmd.Run()
+    err := cmd.Run()
 
-	if err != nil {
-		errMsg := fmt.Sprintf("Error: %s", err.Error())
-		if len(stderr.String()) != 0 {
-			errMsg += fmt.Sprintf(" - STDERR: %s", stderr.String())
-		}
-		if len(stdout.String()) != 0 {
-			errMsg += fmt.Sprintf(" - STDOUT: %s", stdout.String())
-		}
-		return nil, fmt.Errorf(errMsg)
-	}
+    if err != nil {
+        errMsg := fmt.Sprintf("Error: %s", err.Error())
+        if len(stderr.String()) != 0 {
+            errMsg += fmt.Sprintf(" - STDERR: %s", stderr.String())
+        }
+        if len(stdout.String()) != 0 {
+            errMsg += fmt.Sprintf(" - STDOUT: %s", stdout.String())
+        }
+        return nil, fmt.Errorf(errMsg)
+    }
 
-	// TrimSpace on []byte is more efficient than
-	// TrimSpace on a string since it creates a copy
-	content := string(bytes.TrimSpace(stdout.Bytes()))
+    // TrimSpace on []byte is more efficient than
+    // TrimSpace on a string since it creates a copy
+    content := string(bytes.TrimSpace(stdout.Bytes()))
 
-	if len(content) == 0 {
-		return nil, fmt.Errorf("No output for command: %s", cmd.String())
-	}
+    if len(content) == 0 {
+        return nil, fmt.Errorf("No output for command: %s", cmd.String())
+    }
 
-	return &content, nil
+    return &content, nil
 }
